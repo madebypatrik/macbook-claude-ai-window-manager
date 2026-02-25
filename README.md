@@ -14,20 +14,31 @@
 
 ✨ **The Solution**: Set up your windows exactly how you want them once, save the layout, and from that point on a single command restores everything instantly.
 
-### Real Example
-- **You run**: `bash restore_devenv.sh`
-- **What happens**: All 5 apps open automatically and snap into their exact saved positions — left side, right side, perfectly sized — in seconds
-- **You get**: Your full dev environment ready to go, no manual rearranging
-
 **Perfect for**: Developers, designers, or anyone who opens the same set of apps every day and wants them exactly where they expect them.
+
+## 🤖 Recommended: Use Claude Code
+
+The easiest way to use this is with **[Claude Code](https://claude.ai/claude-code)** — an AI assistant that runs in your Terminal.
+
+Instead of memorising commands, you just tell it what you want in plain English:
+
+> *"Open my dev environment"*
+
+> *"Save my current window layout"*
+
+> *"I've moved my windows around, save the new layout"*
+
+> *"Switch to my 1080p layout"*
+
+Claude handles the rest — running the right scripts, saving changes, and keeping everything up to date. No commands to remember.
 
 ## ⚡ What This Does
 
 - 🧠 **Remembers your layout** — Saves the exact position and size of every window
-- ⚡ **One command restore** — Opens all 5 apps and arranges them automatically
+- ⚡ **One command restore** — Opens all your apps and arranges them automatically
 - 📐 **Pixel-perfect positioning** — Windows land exactly where you saved them
-- 🔄 **Update anytime** — Rearrange your windows and re-save whenever you want
-- 🍎 **Mac-native** — Uses built-in macOS tools, nothing to install
+- 🖥️ **Multiple screen profiles** — Different layouts for different resolutions, auto-detected
+- 🍎 **Mac-native** — Uses built-in macOS tools, nothing extra to install
 
 ## 🖥️ My Layouts
 
@@ -47,14 +58,12 @@ The script auto-detects your screen resolution and loads the right layout automa
 
 All 5 apps open full size. Switch between them with `Cmd+Tab`.
 
-Want different apps? See [Customising for Your Setup](#-customising-for-your-setup) below.
-
 ## 🚀 Quick Start
 
 ### What You Need
 - A Mac running macOS
 - Your apps already installed
-- 5 minutes to set it up once
+- [Claude Code](https://claude.ai/claude-code) *(recommended)*
 
 ### Setup
 
@@ -70,49 +79,37 @@ Go to: `System Settings → Privacy & Security → Accessibility` → click `+` 
 
 This allows the script to move and resize windows on your behalf.
 
-**3. Open your apps and position them how you want**
-
-Arrange all your windows exactly the way you like them.
-
-**4. Save your layout**
+**3. Open your apps and position them how you want, then save the layout**
 ```bash
 bash capture_layout.sh
 ```
 
-**5. Done! Restore anytime with:**
+**4. Done! Restore anytime with:**
 ```bash
 bash restore_devenv.sh
 ```
 
 ## 🎬 Day-to-Day Use
 
-From now on, whenever you want your environment set up:
+### With Claude Code *(recommended)*
+Just tell Claude what you want:
+- *"Open my dev environment"* → launches and arranges everything
+- *"My windows are how I want them, save the layout"* → captures and saves automatically
+- *"Add Slack to my environment"* → Claude edits the config and updates everything
 
+### Without Claude Code
 ```bash
-bash restore_devenv.sh
-```
-
-That's it. All apps open and snap into place.
-
-**To save a new layout** (if you've rearranged things):
-```bash
-bash capture_layout.sh
+bash restore_devenv.sh    # open your environment
+bash capture_layout.sh    # save a new layout
 ```
 
 ## 🛠️ Customising for Your Setup
 
-Layouts are saved in resolution-specific config files:
+To add or remove apps, edit **`applications_to_open.sh`** — that's the only file you need to touch. It has clear instructions inside.
 
-- `.devenv_layout_4k.conf` — used when screen width ≥ 2560px
-- `.devenv_layout_1080.conf` — used for smaller screens (auto-generated fullscreen if missing)
-
-Each line stores one app's window position as `x1,y1,x2,y2`:
-```
-atlas=-1,30,1600,1698
-chrome=1600,30,3200,1698
-```
-
-To change which apps are managed, open `capture_layout.sh` and `restore_devenv.sh` and swap out the app names for your own.
+Layout positions are saved in:
+- `.devenv_layout_4k.conf` — for screens 2560px wide or more
+- `.devenv_layout_1080.conf` — for smaller screens (auto-generated fullscreen if missing)
 
 ## 🤝 Contributing
 
