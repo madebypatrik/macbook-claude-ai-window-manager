@@ -1,10 +1,17 @@
 #!/bin/bash
+# ─────────────────────────────────────────────────────────────
 # restore_devenv.sh
-# Launches and arranges your 5 dev apps.
-# Auto-detects screen resolution and uses the correct layout profile.
-# Run with: bash ~/development/claude/restore_devenv.sh
+#
+# Run this to launch and arrange your dev environment.
+# It auto-detects your screen resolution and restores
+# the right window layout automatically.
+#
+# Usage: bash restore_devenv.sh
+# ─────────────────────────────────────────────────────────────
 
-# Detect current screen width to pick the right profile
+source "$(dirname "$0")/applications_to_open.sh"
+
+# Detect current screen size to pick the right profile
 SCREEN_W=$(osascript -e 'tell application "Finder" to item 3 of (bounds of window of desktop)' 2>/dev/null)
 SCREEN_H=$(osascript -e 'tell application "Finder" to item 4 of (bounds of window of desktop)' 2>/dev/null)
 
@@ -17,13 +24,9 @@ else
     # Auto-generate fullscreen layout for 1080p if it doesn't exist
     if [[ ! -f "$LAYOUT_FILE" ]]; then
         MENU_BAR=25
-        cat > "$LAYOUT_FILE" <<EOF
-atlas=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
-chrome=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
-terminal=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
-codex=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
-vscode=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
-EOF
+        for key in "${APP_KEY[@]}"; do
+            echo "$key=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}" >> "$LAYOUT_FILE"
+        done
         echo "Generated fullscreen layout for ${SCREEN_W}x${SCREEN_H}."
     fi
 fi
@@ -37,22 +40,29 @@ fi
 echo "Launching dev environment ($PROFILE)..."
 
 # Launch all apps at once
-open '/Applications/ChatGPT Atlas.app'
-open -a 'Google Chrome'
-open -a 'Terminal'
-open -a 'Codex'
-open -a 'Visual Studio Code'
+for launch_cmd in "${APP_LAUNCH[@]}"; do
+    eval "$launch_cmd"
+done
 
-# Read saved bounds
+# Read bounds for each app from the layout file
 read_bounds() {
     grep "^$1=" "$LAYOUT_FILE" | cut -d= -f2
 }
 
-ATLAS=$(read_bounds atlas)
-CHROME=$(read_bounds chrome)
-TERMINAL=$(read_bounds terminal)
-CODEX=$(read_bounds codex)
-VSCODE=$(read_bounds vscode)
+# Build the dynamic parts of the AppleScript
+WAIT_CALLS=""
+PARSE_CALLS=""
+APPLY_CALLS=""
+
+for i in "${!APP_KEY[@]}"; do
+    key="${APP_KEY[$i]}"
+    process="${APP_PROCESS[$i]}"
+    bounds=$(read_bounds "$key")
+
+    WAIT_CALLS+="my waitForProcess(\"$process\", 30)"$'\n'
+    PARSE_CALLS+="set ${key}Data to my parseBounds(\"$bounds\")"$'\n'
+    APPLY_CALLS+="my applyLayout(\"$process\", item 1 of ${key}Data, item 2 of ${key}Data)"$'\n'
+done
 
 osascript <<EOF
 on parseBounds(b)
@@ -93,25 +103,10 @@ on applyLayout(pName, pos, sz)
     end repeat
 end applyLayout
 
-my waitForProcess("ChatGPT Atlas", 30)
-my waitForProcess("Google Chrome", 20)
-my waitForProcess("Terminal", 15)
-my waitForProcess("Codex", 20)
-my waitForProcess("Electron", 20)
-
+$WAIT_CALLS
 delay 1
-
-set atlasData    to my parseBounds("$ATLAS")
-set chromeData   to my parseBounds("$CHROME")
-set termData     to my parseBounds("$TERMINAL")
-set codexData    to my parseBounds("$CODEX")
-set vscodeData   to my parseBounds("$VSCODE")
-
-my applyLayout("ChatGPT Atlas", item 1 of atlasData,  item 2 of atlasData)
-my applyLayout("Google Chrome", item 1 of chromeData, item 2 of chromeData)
-my applyLayout("Terminal",      item 1 of termData,   item 2 of termData)
-my applyLayout("Codex",         item 1 of codexData,  item 2 of codexData)
-my applyLayout("Electron",      item 1 of vscodeData, item 2 of vscodeData)
+$PARSE_CALLS
+$APPLY_CALLS
 EOF
 
 echo "Done."
