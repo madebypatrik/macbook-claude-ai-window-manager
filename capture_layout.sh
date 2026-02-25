@@ -1,12 +1,21 @@
 #!/bin/bash
 # capture_layout.sh
-# Run this once with all your dev apps open and positioned exactly how you want them.
-# Saves window bounds to ~/.devenv_layout.conf
+# Run with all your dev apps open and positioned exactly how you want them.
+# Auto-detects your screen resolution and saves to the correct layout profile.
 
-LAYOUT_FILE="$HOME/.devenv_layout.conf"
+# Detect current screen width to pick the right profile
+SCREEN_W=$(osascript -e 'tell application "Finder" to item 3 of (bounds of window of desktop)' 2>/dev/null)
+
+if [[ "$SCREEN_W" -ge 2560 ]]; then
+    PROFILE="4k"
+    LAYOUT_FILE="$HOME/.devenv_layout_4k.conf"
+else
+    PROFILE="1080"
+    LAYOUT_FILE="$HOME/.devenv_layout_1080.conf"
+fi
+
 > "$LAYOUT_FILE"
 
-# For apps that support AppleScript directly (Atlas, Chrome, Terminal)
 capture_direct() {
     local label="$1"
     local app="$2"
@@ -36,8 +45,6 @@ EOF
     fi
 }
 
-# For Electron apps that need System Events (Codex, VS Code)
-# Stores as x1,y1,x2,y2 (same format as direct capture)
 capture_sysevents() {
     local label="$1"
     local process="$2"
@@ -70,20 +77,20 @@ EOF
 }
 
 echo ""
-echo "Capturing dev environment layout..."
+echo "Detected screen width: ${SCREEN_W}px → using profile: $PROFILE"
 echo "Make sure all 5 apps are open and positioned the way you want."
 echo ""
 
-capture_sysevents "Atlas Browser"  "ChatGPT Atlas"   "atlas"
-capture_direct    "Google Chrome"  "Google Chrome"   "chrome"
-capture_direct    "Terminal"       "Terminal"         "terminal"
-capture_sysevents "Codex"          "Codex"            "codex"
-capture_sysevents "VS Code"        "Electron"         "vscode"
+capture_sysevents "Atlas Browser"  "ChatGPT Atlas"  "atlas"
+capture_direct    "Google Chrome"  "Google Chrome"  "chrome"
+capture_direct    "Terminal"       "Terminal"       "terminal"
+capture_sysevents "Codex"          "Codex"          "codex"
+capture_sysevents "VS Code"        "Electron"       "vscode"
 
 echo ""
 echo "Saved to: $LAYOUT_FILE"
 echo ""
-echo "--- Saved layout ---"
+echo "--- Saved layout ($PROFILE) ---"
 cat "$LAYOUT_FILE"
 echo ""
-echo "Now run restore_devenv.sh to launch your environment."
+echo "Run restore_devenv.sh to launch your environment."

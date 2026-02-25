@@ -29,17 +29,23 @@
 - 🔄 **Update anytime** — Rearrange your windows and re-save whenever you want
 - 🍎 **Mac-native** — Uses built-in macOS tools, nothing to install
 
-## 🖥️ My Layout
+## 🖥️ My Layouts
 
-This repo is configured for these 5 apps:
+The script auto-detects your screen resolution and loads the right layout automatically.
+
+### 3200x1800 (4K — split layout)
 
 | App | Position |
 |-----|----------|
 | 🌐 ChatGPT Atlas | Left half |
+| 🤖 Codex | Left half |
 | 🌍 Google Chrome | Right half |
 | 💻 Terminal | Right half |
-| 🤖 Codex | Left half |
 | 📝 VS Code | Right half |
+
+### 1920x1080 (fullscreen — all windows maximised)
+
+All 5 apps open full size. Switch between them with `Cmd+Tab`.
 
 Want different apps? See [Customising for Your Setup](#-customising-for-your-setup) below.
 
@@ -95,14 +101,15 @@ bash capture_layout.sh
 
 ## 🛠️ Customising for Your Setup
 
-The layout is saved in `.devenv_layout.conf`. Each line stores one app's window position:
+Layouts are saved in resolution-specific config files:
 
+- `.devenv_layout_4k.conf` — used when screen width ≥ 2560px
+- `.devenv_layout_1080.conf` — used for smaller screens (auto-generated fullscreen if missing)
+
+Each line stores one app's window position as `x1,y1,x2,y2`:
 ```
 atlas=-1,30,1600,1698
 chrome=1600,30,3200,1698
-terminal=1600,40,3200,1647
-codex=0,30,1600,1800
-vscode=1600,30,3200,1800
 ```
 
 To change which apps are managed, open `capture_layout.sh` and `restore_devenv.sh` and swap out the app names for your own.

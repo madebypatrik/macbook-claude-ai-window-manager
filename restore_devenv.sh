@@ -1,17 +1,40 @@
 #!/bin/bash
 # restore_devenv.sh
-# Launches and arranges your 5 dev apps using saved layout from ~/.devenv_layout.conf
+# Launches and arranges your 5 dev apps.
+# Auto-detects screen resolution and uses the correct layout profile.
 # Run with: bash ~/development/claude/restore_devenv.sh
 
-LAYOUT_FILE="$HOME/.devenv_layout.conf"
+# Detect current screen width to pick the right profile
+SCREEN_W=$(osascript -e 'tell application "Finder" to item 3 of (bounds of window of desktop)' 2>/dev/null)
+SCREEN_H=$(osascript -e 'tell application "Finder" to item 4 of (bounds of window of desktop)' 2>/dev/null)
+
+if [[ "$SCREEN_W" -ge 2560 ]]; then
+    PROFILE="4k"
+    LAYOUT_FILE="$HOME/.devenv_layout_4k.conf"
+else
+    PROFILE="1080"
+    LAYOUT_FILE="$HOME/.devenv_layout_1080.conf"
+    # Auto-generate fullscreen layout for 1080p if it doesn't exist
+    if [[ ! -f "$LAYOUT_FILE" ]]; then
+        MENU_BAR=25
+        cat > "$LAYOUT_FILE" <<EOF
+atlas=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
+chrome=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
+terminal=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
+codex=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
+vscode=0,${MENU_BAR},${SCREEN_W},${SCREEN_H}
+EOF
+        echo "Generated fullscreen layout for ${SCREEN_W}x${SCREEN_H}."
+    fi
+fi
 
 if [[ ! -f "$LAYOUT_FILE" ]]; then
-    echo "Layout file not found at $LAYOUT_FILE"
+    echo "Layout file not found: $LAYOUT_FILE"
     echo "Please run capture_layout.sh first."
     exit 1
 fi
 
-echo "Launching dev environment..."
+echo "Launching dev environment ($PROFILE)..."
 
 # Launch all apps at once
 open '/Applications/ChatGPT Atlas.app'
